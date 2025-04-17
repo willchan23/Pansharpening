@@ -1,0 +1,43 @@
+model: 'geoan'
+n_geoab: 14
+#c_geoan: 60
+c_geoan: 60
+# window_sizes: [ 2,4,13 ]
+window_sizes: [ 2, 5, 10 ]
+num_heads: 4
+down_sample: 8
+r_expand: 4
+fp: 32
+#loss: 'nn.SmoothL1Loss()'
+loss: 'LatitudeLoss()'
+optimizer: 'AdamW'
+pretrain:
+resume:
+batch_size: 48
+balanced_gpu0: -1
+epochs: 50
+#lr: 0.0002
+lr: 0.001
+decays: [ 50,80,90,95 ]
+gamma: 0.5
+test_every: 1
+log_lines: 100
+log_path: "./experiments"
+log_name:
+cloudlog: off
+repeat: 1
+augment: 'off'
+# produce
+test_data_path: './proc/test_data/'
+model_path: '/home/czx/pycode/CLDAS_GeoAN/experiments/geoan-2024-0901-1854-2160_1h2steps4v_alseACCinMeanPath/models/model_97.pt'
+# model_path: './experiments/testmodel/6h_523.pt'
+save_path: "./proc"
+
+## hardware specification
+# specify the GPUs you want to use. [0] means using the first GPU. [1,3] means using second and fourth GPU
+gpu_ids: [ 0, 1 ,2, 3 ]
+#gpu_ids: [0]
+threads: 4
+## data specification
+# the path train and test dateset. You can download the dataset in this project
+data_path: '/mnt/data1/czx/cldas_npy/new4v'
