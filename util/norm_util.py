@@ -12,8 +12,12 @@ class Normalization:
         self.pan_mean = torch.from_numpy(np.load(os.path.join(data_path, 'pan-mean.npy')).astype(np.float32))
         self.pan_std = torch.from_numpy(np.load(os.path.join(data_path, 'pan-std.npy')).astype(np.float32))
 
-        self.input_mean = np.concatenate((self.lms_mean, self.pan_mean), axis=0)
-        self.input_std = np.concatenate((self.lms_std, self.pan_std), axis=0)
+        # torch.cat
+        self.input_mean = torch.cat([self.lms_mean, self.pan_mean], dim=0)
+        self.input_std = torch.cat([self.lms_std, self.pan_std], dim=0)
+
+        # self.input_mean = np.concatenate((self.lms_mean, self.pan_mean), axis=0)
+        # self.input_std = np.concatenate((self.lms_std, self.pan_std), axis=0)
 
         self.gt_mean = torch.from_numpy(np.load(os.path.join(data_path, 'gt-mean.npy')).astype(np.float32))
         self.gt_std = torch.from_numpy(np.load(os.path.join(data_path, 'gt-std.npy')).astype(np.float32))
