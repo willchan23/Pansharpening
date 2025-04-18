@@ -40,14 +40,14 @@ class Benchmark(data.Dataset):
             return self.count
 
     def load_data(self, loaded_index):
-        lms_np = np.load(os.path.join(self.data_path, 'lms.npy'))
+        lms_np = np.load(os.path.join(self.data_path, 'lms.npy')).astype(np.float32)
         lms_np = lms_np[loaded_index, :, :, :]
-        pan_np = np.load(os.path.join(self.data_path, 'pan.npy'))
+        pan_np = np.load(os.path.join(self.data_path, 'pan.npy')).astype(np.float32)
         pan_np = pan_np[loaded_index, :, :, :]
         input_np = np.concatenate((lms_np, pan_np), axis=0)
 
         if self.read_gt:
-            gt_np = np.load(os.path.join(self.data_path, 'gt.npy'))
+            gt_np = np.load(os.path.join(self.data_path, 'gt.npy')).astype(np.float32)
             gt_np = gt_np[loaded_index, :, :, :]
         else:
             gt_np = None
@@ -63,6 +63,7 @@ class Benchmark(data.Dataset):
 
 
 if __name__ == '__main__':
-    data_path = r'E:\pycode\Pansharpening\data\GF2'
-    dataset = Benchmark(data_path, train=True)
+    # data_path = r'E:\pycode\Pansharpening\data\GF2'
+    # dataset = Benchmark(data_path, train=True)
+    npy1 = np.load(r'E:\pycode\Pansharpening\data\GF2\Valid\lms.npy')
     pass
