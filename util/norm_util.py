@@ -34,7 +34,7 @@ class Normalization:
 
     def denorm(self, data):
         data = rearrange(data, 'b c h w->b h w c')
-        data = data * self.cldas_std + self.cldas_mean
+        data = data * self.input_std + self.input_mean
         return rearrange(data, 'b h w c->b c h w')
 
 
