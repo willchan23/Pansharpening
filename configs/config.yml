@@ -1,10 +1,10 @@
 model: 'geoan'
 n_geoab: 14
 #c_geoan: 60
-c_geoan: 60
+c_geoan: 128
 # window_sizes: [ 2,4,13 ]
-window_sizes: [ 2, 5, 10 ]
-num_heads: 4
+window_sizes: [ 2, 4, 8 ]
+num_heads: 8
 down_sample: 8
 r_expand: 4
 fp: 32
@@ -29,7 +29,7 @@ repeat: 1
 augment: 'off'
 # produce
 test_data_path: './proc/test_data/'
-model_path: '/home/czx/pycode/CLDAS_GeoAN/experiments/geoan-2024-0901-1854-2160_1h2steps4v_alseACCinMeanPath/models/model_97.pt'
+model_path:
 # model_path: './experiments/testmodel/6h_523.pt'
 save_path: "./proc"
 
@@ -40,4 +40,5 @@ gpu_ids: [ 0, 1 ,2, 3 ]
 threads: 4
 ## data specification
 # the path train and test dateset. You can download the dataset in this project
-data_path: '/mnt/data1/czx/cldas_npy/new4v'
+train_data_path: '/mnt/data1/czx/Pansharpening/GF2/Train'
+valid_data_path: '/mnt/data1/czx/Pansharpening/GF2/Valid'

@@ -90,9 +90,8 @@ if __name__ == '__main__':
         stat_dict = utils.get_stat_dict(
             (
                 ('val-loss', float('inf'), '<'),
-
                 ('RMSE', float('inf'), '<'),
-
+                ('RR', float('inf'), '>'),
             )
         )
         # create folder for ckpt and stat
@@ -132,9 +131,9 @@ if __name__ == '__main__':
     print('Total Number of Parameters:' + str(round(num_params / 1024 ** 2, 2)) + 'M')
     print('Data path: ' + args.data_path)
     print('loading train data: ')
-    train_dataset = Benchmark(args.data_path, train=True, repeat=args.repeat)
+    train_dataset = Benchmark(args.train_data_path, train=True, repeat=args.repeat)
     print('loading valid data: ')
-    valid_dataset = Benchmark(args.data_path, train=False, repeat=args.repeat)
+    valid_dataset = Benchmark(args.valid_data_path, train=False, repeat=args.repeat)
     train_dataloader = DataLoader(dataset=train_dataset, num_workers=args.threads, batch_size=args.batch_size,
                                   shuffle=True, pin_memory=False, drop_last=True)
     valid_dataloader = DataLoader(dataset=valid_dataset, num_workers=args.threads, batch_size=args.batch_size,
@@ -200,18 +199,10 @@ if __name__ == '__main__':
             epoch_loss = 0
             # psnr = 0
             # ssim = 0
-            rmse_PRS = 0
-            acc_PRS = 0
-            rr_PRS = 0
-            rmse_SHU = 0
-            acc_SHU = 0
-            rr_SHU = 0
-            rmse_TMP = 0
-            acc_TMP = 0
-            rr_TMP = 0
-            rmse_WIN = 0
-            acc_WIN = 0
-            rr_WIN = 0
+            rmse = 0
+            acc = 0
+            rr = 0
+
             progress_bar = tqdm(total=len(valid_dataset), desc='Infer')
             count = 0
             for iter_idx, batch in enumerate(valid_dataloader):
@@ -226,32 +217,12 @@ if __name__ == '__main__':
                 y_ = normalization.denorm(y_)
 
                 # m_idx = 4
-                y_PRS = rearrange(y_[:, 0, :, :], '(b c) h w->b c h w', c=1)
-                target_PRS = rearrange(target[:, 0, :, :], '(b c) h w->b c h w', c=1)
+                y_1 = rearrange(y_[:, 0, :, :], '(b c) h w->b c h w', c=1)
+                target_1 = rearrange(target[:, 0, :, :], '(b c) h w->b c h w', c=1)
                 # psnr += float(m.calc_psnr(y_, target))
                 # ssim += float(m.calc_ssim(y_, target))
-                rmse_PRS += float(m.calc_rmse(y_PRS, target_PRS))
-                acc_PRS += float(m.calc_acc(y_PRS, target_PRS, 0))
-                rr_PRS += float(m.calc_rr(y_PRS, target_PRS))
-
-                y_SHU = rearrange(y_[:, 1, :, :], '(b c) h w->b c h w', c=1)
-                target_SHU = rearrange(target[:, 1, :, :], '(b c) h w->b c h w', c=1)
-                rmse_SHU += float(m.calc_rmse(y_SHU, target_SHU))
-                acc_SHU += float(m.calc_acc(y_SHU, target_SHU, 1))
-                rr_SHU += float(m.calc_rr(y_SHU, target_SHU))
-
-                y_TMP = rearrange(y_[:, 2, :, :], '(b c) h w->b c h w', c=1)
-                target_TMP = rearrange(target[:, 2, :, :], '(b c) h w->b c h w', c=1)
-                rmse_TMP += float(m.calc_rmse(y_TMP, target_TMP))
-                acc_TMP += float(m.calc_acc(y_TMP, target_TMP, 2))
-                rr_TMP += float(m.calc_rr(y_TMP, target_TMP))
-
-                y_WIN = rearrange(y_[:, 3, :, :], '(b c) h w->b c h w', c=1)
-                target_WIN = rearrange(target[:, 3, :, :], '(b c) h w->b c h w', c=1)
-                rmse_WIN += float(m.calc_rmse(y_WIN, target_WIN))
-                acc_WIN += float(m.calc_acc(y_WIN, target_WIN, 3))
-                rr_WIN += float(m.calc_rr(y_WIN, target_WIN))
-
+                rmse += float(m.calc_rmse(y_1, target_1))
+                rr += float(m.calc_rr(y_1, target_1))
                 epoch_loss += float(loss)
                 count += 1
                 progress_bar.update(len(input_cldas))
@@ -259,39 +230,15 @@ if __name__ == '__main__':
             epoch_loss = epoch_loss / count
             # psnr = psnr / count
             # ssim = ssim / count
-            rmse_PRS = rmse_PRS / count
-            acc_PRS = acc_PRS / count
-            rr_PRS = rr_PRS / count
-            rmse_SHU = rmse_SHU / count
-            acc_SHU = acc_SHU / count
-            rr_SHU = rr_SHU / count
-            rmse_TMP = rmse_TMP / count
-            acc_TMP = acc_TMP / count
-            rr_TMP = rr_TMP / count
-            rmse_WIN = rmse_WIN / count
-            acc_WIN = acc_WIN / count
-            rr_WIN = rr_WIN / count
+            rmse = rmse / count
+            rr = rr / count
 
             log_out = utils.make_best_metric(stat_dict,
                                              (
                                                  ('val-loss', float(epoch_loss)),
 
-                                                 ('RMSE_PRS', rmse_PRS),
-                                                 ('ACC_PRS', acc_PRS),
-                                                 ('RR_PRS', rr_PRS),
-
-                                                 ('RMSE_SHU', rmse_SHU),
-                                                 ('ACC_SHU', acc_SHU),
-                                                 ('RR_SHU', rr_SHU),
-
-                                                 ('RMSE_TMP', rmse_TMP),
-                                                 ('ACC_TMP', acc_TMP),
-                                                 ('RR_TMP', rr_TMP),
-
-                                                 ('RMSE_WIN', rmse_WIN),
-                                                 ('ACC_WIN', acc_WIN),
-                                                 ('RR_WIN', rr_WIN)
-
+                                                 ('RMSE', rmse),
+                                                 ('RR', rr)
                                              ),
                                              epoch, (experiment_model_path, model, optimizer, scheduler),
                                              (log, args.epochs, cloudLogName))

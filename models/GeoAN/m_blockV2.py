@@ -384,8 +384,8 @@ class FEB(nn.Module):
         self.inp_channels = inp_channels
         self.downscale = downscale
 
-        self.down = DownBlock(inp_channels, downscale=downscale)  # c*downscale
-        self.up = UpBlock(inp_channels, downscale=downscale)
+        # self.down = DownBlock(inp_channels, downscale=downscale)  # c*downscale
+        # self.up = UpBlock(inp_channels, downscale=downscale)
 
         # self.FD = FD(inp_channels=inp_channels * downscale, out_channels=inp_channels * downscale, exp_ratio=exp_ratio)
         # self.ATT = GeoAB(channels=inp_channels * downscale, window_size=window_size, num_heads=num_heads)
@@ -400,7 +400,7 @@ class FEB(nn.Module):
 
     def forward(self, x, roll=False):
         res = x
-        x = self.down(x)  # c:c * downscale
+        # x = self.down(x)  # c:c * downscale
         shortcut = x
         x = self.ATT(x, roll)
         x = self.drop(x)
@@ -409,7 +409,7 @@ class FEB(nn.Module):
         shortcut = x
         x = self.FD(x)
         x = self.norm2(x) + shortcut
-        x = self.up(x)
+        # x = self.up(x)
         x = x + res
         return x
 
