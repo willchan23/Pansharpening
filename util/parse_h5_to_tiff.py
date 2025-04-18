@@ -5,7 +5,7 @@ import numpy as np
 from rasterio.transform import from_origin
 
 
-def h52npy(h5_file_path, output_dir="E:\pycode\Pansharpening\data\GF2\Train"):
+def h52npy(h5_file_path, output_dir="/mnt/data1/czx/Pansharpening/GF2/Train"):
     """
         将 HDF5 文件中的所有数据集转换为单独的 .npy 文件
         参数：
@@ -81,7 +81,7 @@ def npy2Tiff(npyPath, index):
 
 
 if __name__ == '__main__':
-    h52npy(r"E:\data\Pansharpening\training_gf2\train_gf2.h5")
+    h52npy(r"/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5")
     # npy = np.load(r"E:\pycode\Pansharpening\util\lms.npy")
     # t = np2tif()
     # npy2Tiff(r"E:\pycode\Pansharpening\util\gt.npy", 0)
