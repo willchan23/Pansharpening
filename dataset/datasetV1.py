@@ -20,8 +20,8 @@ class Benchmark(data.Dataset):
         self.data_path = data_path
         self.read_gt = read_gt
         self.data = {}
-        # self.count = np.load(os.path.join(data_path, 'gt.npy')).shape[0]
-        self.count = 200
+        self.count = np.load(os.path.join(data_path, 'gt.npy')).shape[0]
+        # self.count = 200
         self.total_bar = tqdm(total=self.count, desc='Loading data')
         self.lms_np = np.load(os.path.join(self.data_path, 'lms.npy')).astype(np.float32)
         self.pan_np = np.load(os.path.join(self.data_path, 'pan.npy')).astype(np.float32)
