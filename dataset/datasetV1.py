@@ -21,8 +21,11 @@ class Benchmark(data.Dataset):
         self.read_gt = read_gt
         self.data = {}
         # self.count = np.load(os.path.join(data_path, 'gt.npy')).shape[0]
-        self.count = 5
+        self.count = 200
         self.total_bar = tqdm(total=self.count, desc='Loading data')
+        self.lms_np = np.load(os.path.join(self.data_path, 'lms.npy')).astype(np.float32)
+        self.pan_np = np.load(os.path.join(self.data_path, 'pan.npy')).astype(np.float32)
+        self.gt_np = np.load(os.path.join(self.data_path, 'gt.npy')).astype(np.float32)
         m = MultiTasks(10)
 
         for load_index in range(0, self.count):
@@ -40,19 +43,16 @@ class Benchmark(data.Dataset):
             return self.count
 
     def load_data(self, loaded_index):
-        lms_np = np.load(os.path.join(self.data_path, 'lms.npy')).astype(np.float32)
-        lms_np = lms_np[loaded_index, :, :, :]
-        pan_np = np.load(os.path.join(self.data_path, 'pan.npy')).astype(np.float32)
-        pan_np = pan_np[loaded_index, :, :, :]
-        input_np = np.concatenate((lms_np, pan_np), axis=0)
+        lms_np_i = self.lms_np[loaded_index, :, :, :]
+        pan_np_i = self.pan_np[loaded_index, :, :, :]
+        input_np_i = np.concatenate((lms_np_i, pan_np_i), axis=0)
 
         if self.read_gt:
-            gt_np = np.load(os.path.join(self.data_path, 'gt.npy')).astype(np.float32)
-            gt_np = gt_np[loaded_index, :, :, :]
+            gt_np_i = self.gt_np[loaded_index, :, :, :]
         else:
-            gt_np = None
+            gt_np_i = None
 
-        r = [input_np, gt_np]
+        r = [input_np_i, gt_np_i]
         r = [e for e in r if e is not None]
         return r
 
