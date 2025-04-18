@@ -55,5 +55,6 @@ def pansharpening_mean_and_std(folder_path):
         np.save(file_path.replace('.npy', '-mean.npy'), mean)
         np.save(file_path.replace('.npy', '-std.npy'), std)
 
+
 if __name__ == '__main__':
-    pansharpening_mean_and_std(r'E:\pycode\Pansharpening\data\GF2\Valid')
+    pansharpening_mean_and_std(r'/mnt/data1/czx/Pansharpening/GF2/Train')
