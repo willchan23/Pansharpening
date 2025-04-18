@@ -9,8 +9,8 @@ num_heads: 8
 down_sample: 8
 r_expand: 4
 fp: 32
-#loss: 'nn.SmoothL1Loss()'
-loss: 'LatitudeLoss()'
+loss: 'nn.SmoothL1Loss()'
+#loss: 'LatitudeLoss()'
 optimizer: 'AdamW'
 pretrain:
 resume:
