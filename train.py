@@ -147,8 +147,8 @@ if __name__ == '__main__':
     log_every = max(len(train_dataloader) // args.log_lines, 1)
 
     train_norm = Normalization(args.train_data_path)
-    train_norm.input_mean, train_norm.input_std = utils.data_to_device(
-        [train_norm.input_mean, train_norm.input_std], device, args.fp)
+    train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std = utils.data_to_device(
+        [train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std], device, args.fp)
 
     valid_norm = Normalization(args.valid_data_path)
     valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std = utils.data_to_device(
