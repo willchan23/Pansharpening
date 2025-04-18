@@ -129,7 +129,6 @@ if __name__ == '__main__':
         num_params += param.numel()
     # 首先计算 num_params / 1024 ** 2，即将参数数量转换为以兆（M）为单位的值，然后使用 round() 函数保留两位小数，并将结果转换为字符串
     print('Total Number of Parameters:' + str(round(num_params / 1024 ** 2, 2)) + 'M')
-    print('Data path: ' + args.data_path)
     print('loading train data: ')
     train_dataset = Benchmark(args.train_data_path, train=True, repeat=args.repeat)
     print('loading valid data: ')
