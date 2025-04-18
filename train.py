@@ -151,8 +151,8 @@ if __name__ == '__main__':
         [train_norm.input_mean, train_norm.input_std], device, args.fp)
 
     valid_norm = Normalization(args.valid_data_path)
-    valid_norm.input_mean, valid_norm.input_std = utils.data_to_device(
-        [valid_norm.input_mean, valid_norm.input_std], device, args.fp)
+    valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std = utils.data_to_device(
+        [valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std], device, args.fp)
 
     m = Metrics()
     # m.psnr, m.ssim = utils.data_to_device([m.psnr, m.ssim], device, args.fp)
