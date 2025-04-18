@@ -1,7 +1,7 @@
 model: 'geoan'
 n_geoab: 14
 #c_geoan: 60
-c_geoan: 128
+c_geoan: 120
 c_in: 5
 # window_sizes: [ 2,4,13 ]
 window_sizes: [ 2, 4, 8 ]
