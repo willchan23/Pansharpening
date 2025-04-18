@@ -146,9 +146,13 @@ if __name__ == '__main__':
     log.send_log('Start training', cloudLogName)
     log_every = max(len(train_dataloader) // args.log_lines, 1)
 
-    normalization = Normalization(args.data_path)
-    normalization.input_mean, normalization.input_std = utils.data_to_device(
-        [normalization.input_mean, normalization.input_std], device, args.fp)
+    train_norm = Normalization()
+    train_norm.input_mean, train_norm.input_std = utils.data_to_device(
+        [train_norm.input_mean, train_norm.input_std], device, args.fp)
+
+    valid_norm = Normalization()
+    valid_norm.input_mean, valid_norm.input_std = utils.data_to_device(
+        [valid_norm.input_mean, valid_norm.input_std], device, args.fp)
 
     m = Metrics()
     # m.psnr, m.ssim = utils.data_to_device([m.psnr, m.ssim], device, args.fp)
@@ -165,7 +169,7 @@ if __name__ == '__main__':
         for iter_idx, batch in enumerate(train_dataloader):
             optimizer.zero_grad()
             input, gt = utils.data_to_device(batch, device, args.fp)
-            input_norm, gt_norm = normalization.input_norm(input_cldas), normalization.gt_norm(gt)
+            input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
 
             roll = 0
             y_ = model(input_norm, roll)
@@ -206,25 +210,25 @@ if __name__ == '__main__':
             count = 0
             for iter_idx, batch in enumerate(valid_dataloader):
                 optimizer.zero_grad()
-                input_cldas, target = utils.data_to_device(batch, device, args.fp)
-                input_cldas, target_norm = normalization.input_steps_norm(input_cldas), normalization.norm(target)
+                input, gt = utils.data_to_device(batch, device, args.fp)
+                input_norm, gt_norm = valid_norm.input_norm(input), valid_norm.gt_norm(gt)
 
                 roll = 0
-                y_ = model(input_cldas, roll)
+                y_ = model(input_norm, roll)
                 b, c, h, w = y_.shape
-                loss = loss_func(y_, target_norm)
-                y_ = normalization.denorm(y_)
+                loss = loss_func(y_, gt_norm)
+                y_ = valid_norm.denorm(y_)
 
                 # m_idx = 4
                 y_1 = rearrange(y_[:, 0, :, :], '(b c) h w->b c h w', c=1)
-                target_1 = rearrange(target[:, 0, :, :], '(b c) h w->b c h w', c=1)
+                target_1 = rearrange(gt[:, 0, :, :], '(b c) h w->b c h w', c=1)
                 # psnr += float(m.calc_psnr(y_, target))
                 # ssim += float(m.calc_ssim(y_, target))
                 rmse += float(m.calc_rmse(y_1, target_1))
                 rr += float(m.calc_rr(y_1, target_1))
                 epoch_loss += float(loss)
                 count += 1
-                progress_bar.update(len(input_cldas))
+                progress_bar.update(len(input))
             progress_bar.close()
             epoch_loss = epoch_loss / count
             # psnr = psnr / count
@@ -235,7 +239,6 @@ if __name__ == '__main__':
             log_out = utils.make_best_metric(stat_dict,
                                              (
                                                  ('val-loss', float(epoch_loss)),
-
                                                  ('RMSE', rmse),
                                                  ('RR', rr)
                                              ),
