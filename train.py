@@ -155,7 +155,7 @@ if __name__ == '__main__':
         [valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std], device, args.fp)
 
     m = Metrics()
-    # m.psnr, m.ssim = utils.data_to_device([m.psnr, m.ssim], device, args.fp)
+    m.psnr, m.ssim = utils.data_to_device([m.psnr, m.ssim], device, args.fp)
     for epoch in range(start_epoch, args.epochs + 1):
         epoch_loss = 0.0
         stat_dict['epochs'] = epoch
