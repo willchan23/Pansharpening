@@ -28,7 +28,7 @@ EXCLUDE_DATE = tuple([datetime.strptime(s, '%Y-%m-%d') for s in EXCLUDE_DATE])
 def get_model(args):
     # definitions of model
     if args.model in ['lgan', 'geoan']:
-        model = GeoAN(window_sizes=args.window_sizes, n_geoab=args.n_geoab, c_in=8, c_geoan=args.c_geoan,
+        model = GeoAN(window_sizes=args.window_sizes, n_geoab=args.n_geoab, c_in=args.c_in, c_geoan=args.c_geoan,
                       r_expand=args.r_expand, down_sample=args.down_sample, num_heads=args.num_heads)
     elif args.model == 'unet':
         model = None
