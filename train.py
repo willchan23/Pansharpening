@@ -90,8 +90,8 @@ if __name__ == '__main__':
         stat_dict = utils.get_stat_dict(
             (
                 ('val-loss', float('inf'), '<'),
-                ('RMSE', float('inf'), '<'),
-                ('RR', float('inf'), '>'),
+                ('PSNR', float('inf'), '<'),
+                ('SSIM', float('inf'), '>'),
             )
         )
         # create folder for ckpt and stat
@@ -200,8 +200,8 @@ if __name__ == '__main__':
             torch.set_grad_enabled(False)
             model = model.eval()
             epoch_loss = 0
-            # psnr = 0
-            # ssim = 0
+            psnr = 0
+            ssim = 0
             rmse = 0
             acc = 0
             rr = 0
@@ -222,25 +222,25 @@ if __name__ == '__main__':
                 # m_idx = 4
                 y_1 = rearrange(y_[:, 0, :, :], '(b c) h w->b c h w', c=1)
                 target_1 = rearrange(gt[:, 0, :, :], '(b c) h w->b c h w', c=1)
-                # psnr += float(m.calc_psnr(y_, target))
-                # ssim += float(m.calc_ssim(y_, target))
-                rmse += float(m.calc_rmse(y_1, target_1))
-                rr += float(m.calc_rr(y_1, target_1))
+                psnr += float(m.calc_psnr(y_1, target_1))
+                ssim += float(m.calc_ssim(y_1, target_1))
+                # rmse += float(m.calc_rmse(y_1, target_1))
+                # rr += float(m.calc_rr(y_1, target_1))
                 epoch_loss += float(loss)
                 count += 1
                 progress_bar.update(len(input))
             progress_bar.close()
             epoch_loss = epoch_loss / count
-            # psnr = psnr / count
-            # ssim = ssim / count
-            rmse = rmse / count
-            rr = rr / count
+            psnr = psnr / count
+            ssim = ssim / count
+            # rmse = rmse / count
+            # rr = rr / count
 
             log_out = utils.make_best_metric(stat_dict,
                                              (
                                                  ('val-loss', float(epoch_loss)),
-                                                 ('RMSE', rmse),
-                                                 ('RR', rr)
+                                                 ('PSNR', psnr),
+                                                 ('SSIM', ssim)
                                              ),
                                              epoch, (experiment_model_path, model, optimizer, scheduler),
                                              (log, args.epochs, cloudLogName))
