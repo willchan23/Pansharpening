@@ -133,7 +133,7 @@ class Norm(nn.Module):
     def __init__(self, c_in):
         super(Norm, self).__init__()
         #     self.norm = nn.BatchNorm2d(c_in)
-        self.norm = nn.GroupNorm(3, c_in, eps=1e-6, affine=True)
+        self.norm = nn.GroupNorm(4, c_in, eps=1e-6, affine=True)
 
     def forward(self, x):
         x = self.norm(x)
