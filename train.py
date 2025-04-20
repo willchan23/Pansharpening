@@ -91,8 +91,8 @@ if __name__ == '__main__':
         stat_dict = utils.get_stat_dict(
             (
                 ('val-loss', float('inf'), '<'),
-                ('PSNR', float('inf'), '>'),
-                ('SSIM', float('inf'), '>'),
+                ('PSNR', float('0'), '>'),
+                ('SSIM', float('0'), '>'),
             )
         )
         # create folder for ckpt and stat

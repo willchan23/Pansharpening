@@ -16,7 +16,7 @@ pretrain:
 resume:
 batch_size: 72
 balanced_gpu0: -1
-epochs: 50
+epochs: 100
 #lr: 0.0002
 lr: 0.001
 decays: [ 50,80,90,95 ]
