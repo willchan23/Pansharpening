@@ -3,7 +3,7 @@ import math
 
 import yaml
 
-from metrics.metrics2 import cpsnr, cssim
+from metrics.metrics2 import cpsnr, cssim, scale_to_255
 from util import utils
 import os
 import sys
@@ -212,12 +212,12 @@ if __name__ == '__main__':
                 b, c, h, w = y_.shape
 
                 # quantize output to [0, 255]
-                hr = gt.clamp(0, 255)
-                sr = y_.clamp(0, 255)
 
                 loss = loss_func(y_, gt_norm)
                 y_ = valid_norm.denorm(y_)
 
+                sr = scale_to_255(y_)
+                hr = scale_to_255(gt)
                 batch_psnr, batch_ssim, batch_qnr, batch_D_lambda, batch_D_s = [], [], [], [], []
                 for batch_index in range(b):
                     # 计算PSNR和SSIM

@@ -410,6 +410,12 @@ def no_ref_evaluate(pred, pan, hs):
     return [c_D_lambda, c_D_s, c_qnr]
 
 
+def scale_to_255(tensor):
+    min_val = tensor.min()
+    max_val = tensor.max()
+    return 255 * (tensor - min_val) / (max_val - min_val)
+
+
 if __name__ == '__main__':
     # test
     img1 = np.random.rand(256, 256, 4)
