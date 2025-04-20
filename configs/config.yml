@@ -1,5 +1,5 @@
 model: 'geoan'
-n_geoab: 18
+n_geoab: 9
 #c_geoan: 60
 c_geoan: 120
 c_in: 5
@@ -18,7 +18,7 @@ batch_size: 72
 balanced_gpu0: -1
 epochs: 100
 #lr: 0.0002
-lr: 0.001
+lr: 0.0001
 decays: [ 50,80,90,95 ]
 gamma: 0.5
 test_every: 1
