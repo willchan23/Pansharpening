@@ -2,6 +2,8 @@ import torch
 import math
 
 import yaml
+
+from metrics.metrics2 import cpsnr, cssim
 from util import utils
 import os
 import sys
@@ -25,7 +27,6 @@ from util.cache import Cache
 from util.cache_loader import CacheLoader
 from util.data_parallelV2 import BalancedDataParallel
 from util.norm_util import Normalization
-from metrics.metrics import Metrics
 from einops import rearrange
 from util.utils import EXCLUDE_DATE
 
@@ -90,7 +91,7 @@ if __name__ == '__main__':
         stat_dict = utils.get_stat_dict(
             (
                 ('val-loss', float('inf'), '<'),
-                ('PSNR', float('inf'), '<'),
+                ('PSNR', float('inf'), '>'),
                 ('SSIM', float('inf'), '>'),
             )
         )
@@ -154,8 +155,6 @@ if __name__ == '__main__':
     valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std = utils.data_to_device(
         [valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std], device, args.fp)
 
-    m = Metrics()
-    m.psnr, m.ssim = utils.data_to_device([m.psnr, m.ssim], device, args.fp)
     for epoch in range(start_epoch, args.epochs + 1):
         epoch_loss = 0.0
         stat_dict['epochs'] = epoch
@@ -200,12 +199,7 @@ if __name__ == '__main__':
             torch.set_grad_enabled(False)
             model = model.eval()
             epoch_loss = 0
-            psnr = 0
-            ssim = 0
-            rmse = 0
-            acc = 0
-            rr = 0
-
+            psnr_list, ssim_list, qnr_list, d_lambda_list, d_s_list = [], [], [], [], []
             progress_bar = tqdm(total=len(valid_dataset), desc='Infer')
             count = 0
             for iter_idx, batch in enumerate(valid_dataloader):
@@ -216,31 +210,41 @@ if __name__ == '__main__':
                 roll = 0
                 y_ = model(input_norm, roll)
                 b, c, h, w = y_.shape
+
+                # quantize output to [0, 255]
+                hr = gt.clamp(0, 255)
+                sr = y_.clamp(0, 255)
+
                 loss = loss_func(y_, gt_norm)
                 y_ = valid_norm.denorm(y_)
 
-                # m_idx = 4
-                y_1 = rearrange(y_[:, 0, :, :], '(b c) h w->b c h w', c=1)
-                target_1 = rearrange(gt[:, 0, :, :], '(b c) h w->b c h w', c=1)
-                psnr += float(m.calc_psnr(y_1, target_1))
-                ssim += float(m.calc_ssim(y_1, target_1))
-                # rmse += float(m.calc_rmse(y_1, target_1))
-                # rr += float(m.calc_rr(y_1, target_1))
+                batch_psnr, batch_ssim, batch_qnr, batch_D_lambda, batch_D_s = [], [], [], [], []
+                for batch_index in range(b):
+                    # 计算PSNR和SSIM
+                    predict_y = (sr[batch_index, ...].cpu().numpy().transpose((1, 2, 0)))
+                    ground_truth = (hr[batch_index, ...].cpu().numpy().transpose((1, 2, 0)))
+                    psnr = cpsnr(predict_y, ground_truth)
+                    ssim = cssim(predict_y, ground_truth, 255)
+                    batch_psnr.append(psnr)
+                    batch_ssim.append(ssim)
+
                 epoch_loss += float(loss)
+                psnr_list.extend(batch_psnr)
+                ssim_list.extend(batch_ssim)
                 count += 1
                 progress_bar.update(len(input))
             progress_bar.close()
             epoch_loss = epoch_loss / count
-            psnr = psnr / count
-            ssim = ssim / count
+            psnr_total = np.array(psnr_list).mean()
+            ssim_total = np.array(ssim_list).mean()
             # rmse = rmse / count
             # rr = rr / count
 
             log_out = utils.make_best_metric(stat_dict,
                                              (
                                                  ('val-loss', float(epoch_loss)),
-                                                 ('PSNR', psnr),
-                                                 ('SSIM', ssim)
+                                                 ('PSNR', psnr_total),
+                                                 ('SSIM', ssim_total)
                                              ),
                                              epoch, (experiment_model_path, model, optimizer, scheduler),
                                              (log, args.epochs, cloudLogName))
