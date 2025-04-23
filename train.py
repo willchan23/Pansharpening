@@ -147,13 +147,13 @@ if __name__ == '__main__':
     log.send_log('Start training', cloudLogName)
     log_every = max(len(train_dataloader) // args.log_lines, 1)
 
-    train_norm = Normalization(args.train_data_path)
-    train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std = utils.data_to_device(
-        [train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std], device, args.fp)
-
-    valid_norm = Normalization(args.valid_data_path)
-    valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std = utils.data_to_device(
-        [valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std], device, args.fp)
+    # train_norm = Normalization(args.train_data_path)
+    # train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std = utils.data_to_device(
+    #     [train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std], device, args.fp)
+    #
+    # valid_norm = Normalization(args.valid_data_path)
+    # valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std = utils.data_to_device(
+    #     [valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std], device, args.fp)
 
     for epoch in range(start_epoch, args.epochs + 1):
         epoch_loss = 0.0
@@ -168,12 +168,12 @@ if __name__ == '__main__':
         for iter_idx, batch in enumerate(train_dataloader):
             optimizer.zero_grad()
             input, gt = utils.data_to_device(batch, device, args.fp)
-            input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
+            # input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
 
             roll = 0
-            y_ = model(input_norm, roll)
+            y_ = model(input, roll)
             b, c, h, w = y_.shape
-            loss = loss_func(y_, gt_norm)
+            loss = loss_func(y_, gt)
             loss.backward()
             optimizer.step()
             epoch_loss += float(loss)
@@ -205,24 +205,22 @@ if __name__ == '__main__':
             for iter_idx, batch in enumerate(valid_dataloader):
                 optimizer.zero_grad()
                 input, gt = utils.data_to_device(batch, device, args.fp)
-                input_norm, gt_norm = valid_norm.input_norm(input), valid_norm.gt_norm(gt)
+                # input_norm, gt_norm = valid_norm.input_norm(input), valid_norm.gt_norm(gt)
 
                 roll = 0
-                y_ = model(input_norm, roll)
+                y_ = model(input, roll)
                 b, c, h, w = y_.shape
 
                 # quantize output to [0, 255]
 
-                loss = loss_func(y_, gt_norm)
-                y_ = valid_norm.denorm(y_)
+                loss = loss_func(y_, gt)
+                # y_ = valid_norm.denorm(y_)
 
-                sr = scale_to_255(y_)
-                hr = scale_to_255(gt)
                 batch_psnr, batch_ssim, batch_qnr, batch_D_lambda, batch_D_s = [], [], [], [], []
                 for batch_index in range(b):
                     # 计算PSNR和SSIM
-                    predict_y = (sr[batch_index, ...].cpu().numpy().transpose((1, 2, 0)))
-                    ground_truth = (hr[batch_index, ...].cpu().numpy().transpose((1, 2, 0)))
+                    predict_y = (y_[batch_index, ...].cpu().numpy().transpose((1, 2, 0))) * 255
+                    ground_truth = (gt[batch_index, ...].cpu().numpy().transpose((1, 2, 0))) * 255
                     psnr = cpsnr(predict_y, ground_truth)
                     ssim = cssim(predict_y, ground_truth, 255)
                     batch_psnr.append(psnr)
