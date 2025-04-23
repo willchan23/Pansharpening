@@ -416,11 +416,15 @@ def scale_to_255(tensor):
     return 255 * (tensor - min_val) / (max_val - min_val)
 
 
+# (b,c,h,w) 在 h,w上0-1
+def max_min_to_01(npy):
+    max_val = npy.max(axis=(2, 3), keepdims=True)
+    min_val = npy.min(axis=(2, 3), keepdims=True)
+    return (npy - min_val) / (max_val - min_val + 1e-8)
+
+
 if __name__ == '__main__':
     # test
-    img1 = np.random.rand(256, 256, 4)
-    img2 = np.random.rand(256, 256, 4)
-    print(cpsnr(img1, img2))
-    print(cpsnr(img1, img1))
-    print(cssim(img1, img2))
-    print(cssim(img1, img1))
+    npy = np.load('E:\pycode\Pansharpening\data\GF2\Valid\gt.npy')
+    a = max_min_to_01(npy)
+    pass

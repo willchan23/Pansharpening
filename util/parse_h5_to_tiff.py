@@ -80,9 +80,22 @@ def npy2Tiff(npyPath, index):
     save_3d_to_tif(data, npyPath.replace('.npy', '.tif'), dtype=data.dtype)
 
 
+def max_min_to_01(npy_path):
+    npy = np.load(npy_path)
+    max_val = npy.max(axis=(2, 3), keepdims=True)
+    min_val = npy.min(axis=(2, 3), keepdims=True)
+    # return (npy - min_val) / (max_val - min_val + 1e-8)
+    npy = (npy - min_val) / (max_val - min_val + 1e-8)
+    save_path = npy_path.replace('.npy', '_01.npy')
+    np.save(save_path, npy)
+
+
 if __name__ == '__main__':
     h52npy(r"/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5")
     # npy = np.load(r"E:\pycode\Pansharpening\util\lms.npy")
     # t = np2tif()
     # npy2Tiff(r"E:\pycode\Pansharpening\util\gt.npy", 0)
-    pass
+    npy_list = ['lms.npy', 'pan.npy', 'gt.npy']
+    for npy in npy_list:
+        max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2/Train/{npy}")
+        max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2/Valid/{npy}")
