@@ -91,7 +91,7 @@ def max_min_to_01(npy_path):
 
 
 if __name__ == '__main__':
-    h52npy(r"/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5")
+    # h52npy(r"/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5")
     # npy = np.load(r"E:\pycode\Pansharpening\util\lms.npy")
     # t = np2tif()
     # npy2Tiff(r"E:\pycode\Pansharpening\util\gt.npy", 0)
