@@ -9,7 +9,8 @@ num_heads: 8
 down_sample: 8
 r_expand: 4
 fp: 32
-loss: 'nn.SmoothL1Loss()'
+loss: 'nn.L1Loss()'
+#loss: 'nn.SmoothL1Loss()'
 #loss: 'LatitudeLoss()'
 optimizer: 'AdamW'
 pretrain:
@@ -18,9 +19,9 @@ batch_size: 48
 balanced_gpu0: -1
 epochs: 300
 #lr: 0.0002
-lr: 0.0001
+lr: 0.0005
 decays: [ 50,80,90,95 ]
-gamma: 0.5
+gamma: 0.1
 test_every: 1
 log_lines: 100
 log_path: "./experiments"
