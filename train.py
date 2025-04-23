@@ -215,7 +215,8 @@ if __name__ == '__main__':
 
                 loss = loss_func(y_, gt)
                 # y_ = valid_norm.denorm(y_)
-
+                y_ = y_.clamp(0, 1)
+                gt = gt.clamp(0, 1)
                 batch_psnr, batch_ssim, batch_qnr, batch_D_lambda, batch_D_s = [], [], [], [], []
                 for batch_index in range(b):
                     # 计算PSNR和SSIM
