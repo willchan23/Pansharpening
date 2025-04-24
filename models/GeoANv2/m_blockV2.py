@@ -399,12 +399,12 @@ class FEB(nn.Module):
         # self.up = UpBlock(inp_channels, downscale=2)
         # self.up_f = UpBlock(inp_channels, downscale=2)
 
-        self.FD = FD(inp_channels=inp_channels * 2, out_channels=inp_channels * 2, exp_ratio=exp_ratio)
-        self.ATT = GeoAB(channels=inp_channels * 2, window_size=window_size, num_heads=num_heads)
-        self.f_norm1 = Norm(inp_channels * 2)
-        self.norm1 = Norm(inp_channels * 2)
-        self.f_norm2 = Norm(inp_channels * 2)
-        self.norm2 = Norm(inp_channels * 2)
+        self.FD = FD(inp_channels=inp_channels, out_channels=inp_channels, exp_ratio=exp_ratio)
+        self.ATT = GeoAB(channels=inp_channels, window_size=window_size, num_heads=num_heads)
+        self.f_norm1 = Norm(inp_channels)
+        self.norm1 = Norm(inp_channels)
+        self.f_norm2 = Norm(inp_channels)
+        self.norm2 = Norm(inp_channels)
         self.drop = nn.Dropout2d(0.2)
 
     def forward(self, f, x, roll=False):
