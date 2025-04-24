@@ -93,12 +93,12 @@ def max_min_to_01(npy_path):
 if __name__ == '__main__':
     # h52npy(r"/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5")
     # h52npy(r"E:\data\Pansharpening\training_gf2\valid_gf2.h5")
-    h52npy(r'/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5', '/mnt/data1/czx/Pansharpening/GF2v2/Train')
+    # h52npy(r'/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5', '/mnt/data1/czx/Pansharpening/GF2v2/Train')
     h52npy(r'/mnt/data1/czx/Pansharpening/GF2/valid_gf2.h5', '/mnt/data1/czx/Pansharpening/GF2v2/Valid')
     # npy = np.load(r"E:\pycode\Pansharpening\util\lms.npy")
     # t = np2tif()
     # npy2Tiff(r"E:\pycode\Pansharpening\util\gt.npy", 0)
-    npy_list = ['ms.npy', 'pan.npy', 'gt.npy']
-    for npy in npy_list:
-        max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2v2/Train/{npy}")
-        max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2v2/Valid/{npy}")
+    # npy_list = ['ms.npy', 'pan.npy', 'gt.npy']
+    # for npy in npy_list:
+        # max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2v2/Train/{npy}")
+        # max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2v2/Valid/{npy}")
