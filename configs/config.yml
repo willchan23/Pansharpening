@@ -42,5 +42,5 @@ gpu_ids: [ 0, 1 ,2, 3 ]
 threads: 4
 ## data specification
 # the path train and test dateset. You can download the dataset in this project
-train_data_path: '/mnt/data1/czx/Pansharpening/GF2/Train'
-valid_data_path: '/mnt/data1/czx/Pansharpening/GF2/Valid'
+train_data_path: '/mnt/data1/czx/Pansharpening/GF2v2/Train'
+valid_data_path: '/mnt/data1/czx/Pansharpening/GF2v2/Valid'
