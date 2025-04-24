@@ -100,5 +100,5 @@ if __name__ == '__main__':
     # npy2Tiff(r"E:\pycode\Pansharpening\util\gt.npy", 0)
     npy_list = ['ms.npy', 'pan.npy', 'gt.npy']
     for npy in npy_list:
-        max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2/Train/{npy}")
-        max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2/Valid/{npy}")
+        max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2v2/Train/{npy}")
+        max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2v2/Valid/{npy}")
