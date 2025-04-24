@@ -92,14 +92,10 @@ class ACT(nn.Module):
 class DownBlock(nn.Module):
     def __init__(self, c_lgan, downscale=2):
         super(DownBlock, self).__init__()
-        # self.down = nn.Conv2d(c_lgan, c_lgan * downscale, kernel_size=downscale, stride=downscale)
-        # self.norm = Norm(c_lgan * downscale)
-        # self.act = ACT()
-        # self.conv = nn.Conv2d(c_lgan * downscale, c_lgan * downscale, kernel_size=3, stride=1, padding=1)
-        self.down = nn.Conv2d(c_lgan, c_lgan, kernel_size=downscale, stride=downscale)
-        self.norm = Norm(c_lgan)
+        self.down = nn.Conv2d(c_lgan, c_lgan * downscale, kernel_size=downscale, stride=downscale)
+        self.norm = Norm(c_lgan * downscale)
         self.act = ACT()
-        self.conv = nn.Conv2d(c_lgan, c_lgan, kernel_size=3, stride=1, padding=1)
+        self.conv = nn.Conv2d(c_lgan * downscale, c_lgan * downscale, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
         x = self.down(x)
@@ -112,14 +108,10 @@ class DownBlock(nn.Module):
 class UpBlock(nn.Module):
     def __init__(self, c_lgan, downscale=2):
         super(UpBlock, self).__init__()
-        # self.conv = nn.Conv2d(c_lgan * downscale, c_lgan * downscale, kernel_size=3, stride=1, padding=1)
-        # self.norm = Norm(c_lgan * downscale)
-        # self.act = ACT()
-        # self.up = nn.ConvTranspose2d(c_lgan * downscale, c_lgan, kernel_size=downscale, stride=downscale)
-        self.conv = nn.Conv2d(c_lgan, c_lgan, kernel_size=3, stride=1, padding=1)
-        self.norm = Norm(c_lgan)
+        self.conv = nn.Conv2d(c_lgan * downscale, c_lgan * downscale, kernel_size=3, stride=1, padding=1)
+        self.norm = Norm(c_lgan * downscale)
         self.act = ACT()
-        self.up = nn.ConvTranspose2d(c_lgan, c_lgan, kernel_size=downscale, stride=downscale)
+        self.up = nn.ConvTranspose2d(c_lgan * downscale, c_lgan, kernel_size=downscale, stride=downscale)
 
     def forward(self, x):
         x = self.conv(x)
@@ -133,7 +125,7 @@ class Norm(nn.Module):
     def __init__(self, c_in):
         super(Norm, self).__init__()
         #     self.norm = nn.BatchNorm2d(c_in)
-        self.norm = nn.GroupNorm(4, c_in, eps=1e-6, affine=True)
+        self.norm = nn.GroupNorm(3, c_in, eps=1e-6, affine=True)
 
     def forward(self, x):
         x = self.norm(x)
@@ -170,9 +162,14 @@ class Head(nn.Module):
 class Tail(nn.Module):
     def __init__(self, c_lgan, c_in, down_sample):
         super(Tail, self).__init__()
-        self.conv1 = nn.Conv2d(c_lgan, 24, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(24, 12, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(12, 4, kernel_size=3, stride=1, padding=1)
+        self.layers = nn.Sequential(
+            nn.Conv2d(c_lgan, c_lgan // 2, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(c_lgan // 2, c_lgan // 4, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(c_lgan // 4, c_in, kernel_size=3, stride=1, padding=1)
+        )
+
         # self.norm = nn.BatchNorm2d(c_in * down_sample * down_sample)
         # self.norm = Norm(c_in * down_sample * down_sample)
         # self.act = act
@@ -181,14 +178,11 @@ class Tail(nn.Module):
         # self.ps = nn.PixelShuffle(down_sample)
 
     def forward(self, x):
-        x = self.conv1(x)
+        x = self.layers(x)
         # shortcut = x
         # x = self.norm(x)
         # x = self.act(x)
         # x = self.conv2(x) + shortcut
-        x = self.conv2(x)
-
-        x = self.conv3(x)
         return x
 
 
@@ -218,15 +212,22 @@ class FD(nn.Module):
         # self.fc2 = MLP(inp_channels * exp_ratio, out_channels)
         self.fc1 = ShiftConv2d(inp_channels, inp_channels * exp_ratio)
         self.fc2 = ShiftConv2d(inp_channels * exp_ratio, out_channels)
+        self.f_fc1 = ShiftConv2d(inp_channels, inp_channels * exp_ratio)
+        self.f_fc2 = ShiftConv2d(inp_channels * exp_ratio, out_channels)
+        # self.fc1 = nn.Conv2d(inp_channels, inp_channels * exp_ratio, kernel_size=3, stride=1, padding=1)
+        # self.fc2 = nn.Conv2d(inp_channels * exp_ratio, out_channels, kernel_size=3, stride=1, padding=1)
         self.act1 = ACT()
         self.act2 = ACT()
 
-    def forward(self, x):
+    def forward(self, f, x):
         y = self.fc1(x)
         y = self.act1(y)
         y = self.fc2(y)
 
-        return y
+        f = self.f_fc1(f)
+        f = self.act2(f)
+        f = self.f_fc2(f)
+        return f, y
 
 
 class GeoAB(nn.Module):
@@ -291,14 +292,19 @@ class GeoAB(nn.Module):
         # 注册relative_position_index为不需要学习的参数
         # #########################################################################
 
-    def wa(self, x, wsize):
+    def wa(self, f, x, wsize):
         b, c, h, w = x.shape
+        q = rearrange(
+            f, 'b (head c) (h dh) (w dw) -> (b h w) head (dh dw) c',
+            dh=wsize, dw=wsize, head=self.num_heads
+        )
+        # q-> ((b h0 w0), 8, 25, 9)
         k, v = rearrange(
             x, 'b (kv head c) (h dh) (w dw) -> kv (b h w) head (dh dw) c',
             kv=2, dh=wsize, dw=wsize, head=self.num_heads
         )
         # @等同于torch.matmul，转置后就变成了((b h0 w0), 8, 25, 9)@((b h0 w0), 8, 9, 25)->((b h0 w0), 8, 25, 25)
-        atn = (F.normalize(k, dim=-1) @ F.normalize(k, dim=-1).transpose(-2, -1))
+        atn = (F.normalize(q, dim=-1) @ F.normalize(k, dim=-1).transpose(-2, -1))
 
         t = torch.tensor(1. / 0.01).to('cuda')
         logit_scale = torch.clamp(self.logit_scale, max=torch.log(t)).exp()
@@ -329,28 +335,31 @@ class GeoAB(nn.Module):
     #     y_ = torch.roll(y_, shifts=(wsize // 2, wsize // 2), dims=(2, 3))
     # y = self.project_out(y_)
     # return y
-    def forward(self, x, roll=False):
+    def forward(self, f, x, roll=False):
         b, c, h, w = x.shape
         x = self.project_inp(x)  # b 2*216 h w
         # xs for key and value
         xs = torch.split(x, self.split_chns, dim=1)  # 3个 (b, 144, h, w)
+        f = self.f_project_inp(f)  # b 216 h w
+        # fs for query
+        fs = torch.split(f, self.f_split_chns, dim=1)  # 3个 (b, 72, h, w)
         wsize = self.window_size
         ys = []
-
         # window attention
-        y_ = self.wa(xs[0], wsize)
+        y_ = self.wa(fs[0], xs[0], wsize)
         ys.append(y_)
-
         # shifted window attention
         x_ = torch.roll(xs[1], shifts=(-wsize // 2, -wsize // 2), dims=(2, 3))
-        y_ = self.wa(x_, wsize)
+        f_ = torch.roll(fs[1], shifts=(-wsize // 2, -wsize // 2), dims=(2, 3))
+        y_ = self.wa(f_, x_, wsize)
         y_ = torch.roll(y_, shifts=(wsize // 2, wsize // 2), dims=(2, 3))
         ys.append(y_)
 
         # long-range attentin
         # for longitude
+        q = rearrange(fs[2], 'b (head c) h w -> (b h) head w c', head=self.num_heads)
         k, v = rearrange(xs[2], 'b (kv head c) h w -> kv (b h) head w c', kv=2, head=self.num_heads)
-        atn = (F.normalize(k, dim=-1) @ F.normalize(k, dim=-1).transpose(-2, -1))
+        atn = (F.normalize(q, dim=-1) @ F.normalize(k, dim=-1).transpose(-2, -1))
         t = torch.tensor(1. / 0.01).to('cuda')
         logit_scale = torch.clamp(self.lr_logit_scale, max=torch.log(t)).exp()
         atn = atn * logit_scale
@@ -361,9 +370,12 @@ class GeoAB(nn.Module):
         # ys.append(y_)
 
         # for latitude
-        k, v = rearrange(k, '(b h) head w c -> (b w) head h c', h=h), rearrange(v, '(b h) head w c -> (b w) head h c',
-                                                                                h=h)
-        atn = (F.normalize(k, dim=-1) @ F.normalize(k, dim=-1).transpose(-2, -1))
+        q, k, v = (rearrange(q, '(b h) head w c -> (b w) head h c', h=h),
+                   rearrange(k, '(b h) head w c -> (b w) head h c', h=h),
+                   rearrange(v, '(b h) head w c -> (b w) head h c', h=h))
+        # q = rearrange(fs[2], 'b c h w -> (b w) h c')
+        # k, v = rearrange(xs[2], 'b (kv c) h w -> kv (b w) h c', kv=2)
+        atn = (F.normalize(q, dim=-1) @ F.normalize(k, dim=-1).transpose(-2, -1))
         atn = atn * logit_scale
         # atn = (q @ k.transpose(-2, -1))
         atn = atn.softmax(dim=-1)
@@ -373,7 +385,6 @@ class GeoAB(nn.Module):
 
         y = torch.cat(ys, dim=1)
         y = self.project_out(y)
-
         return y
 
 
@@ -383,34 +394,33 @@ class FEB(nn.Module):
         self.exp_ratio = exp_ratio
         self.inp_channels = inp_channels
 
-        # self.down = DownBlock(inp_channels, downscale=downscale)  # c*downscale
-        # self.up = UpBlock(inp_channels, downscale=downscale)
+        # self.down = DownBlock(inp_channels, downscale=2)
+        # self.down_f = DownBlock(inp_channels, downscale=2)
+        # self.up = UpBlock(inp_channels, downscale=2)
+        # self.up_f = UpBlock(inp_channels, downscale=2)
 
-        # self.FD = FD(inp_channels=inp_channels * downscale, out_channels=inp_channels * downscale, exp_ratio=exp_ratio)
-        # self.ATT = GeoAB(channels=inp_channels * downscale, window_size=window_size, num_heads=num_heads)
-        # self.norm1 = Norm(inp_channels * downscale)
-        # self.drop = nn.Dropout2d(0.2)
-        # self.norm2 = Norm(inp_channels * downscale)
-        self.FD = FD(inp_channels=inp_channels, out_channels=inp_channels, exp_ratio=exp_ratio)
-        self.ATT = GeoAB(channels=inp_channels, window_size=window_size, num_heads=num_heads)
-        self.norm1 = Norm(inp_channels)
+        self.FD = FD(inp_channels=inp_channels * 2, out_channels=inp_channels * 2, exp_ratio=exp_ratio)
+        self.ATT = GeoAB(channels=inp_channels * 2, window_size=window_size, num_heads=num_heads)
+        self.f_norm1 = Norm(inp_channels * 2)
+        self.norm1 = Norm(inp_channels * 2)
+        self.f_norm2 = Norm(inp_channels * 2)
+        self.norm2 = Norm(inp_channels * 2)
         self.drop = nn.Dropout2d(0.2)
-        self.norm2 = Norm(inp_channels)
 
-    def forward(self, x, roll=False):
-        res = x
-        # x = self.down(x)  # c:c * downscale
+    def forward(self, f, x, roll=False):
+        f_res, res = f, x
+        # f, x = self.down_f(f), self.down(x)  # c:108*2
         shortcut = x
-        x = self.ATT(x, roll)
+        x = self.ATT(f, x, roll)
         x = self.drop(x)
-        x = self.norm1(x) + shortcut
+        f, x = self.f_norm1(f), self.norm1(x) + shortcut
 
-        shortcut = x
-        x = self.FD(x)
-        x = self.norm2(x) + shortcut
-        # x = self.up(x)
-        x = x + res
-        return x
+        f_shortcut, shortcut = f, x
+        f, x = self.FD(f, x)
+        f, x = self.f_norm2(f) + f_shortcut, self.norm2(x) + shortcut
+        # f, x = self.up_f(f), self.up(x)
+        f, x = f + f_res, x + res
+        return f, x
 
 
 if __name__ == '__main__':

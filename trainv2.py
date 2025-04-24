@@ -167,11 +167,11 @@ if __name__ == '__main__':
         # training the model
         for iter_idx, batch in enumerate(train_dataloader):
             optimizer.zero_grad()
-            input, gt = utils.data_to_device(batch, device, args.fp)
+            ms, pan, gt = utils.data_to_device(batch, device, args.fp)
             # input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
 
             roll = 0
-            y_ = model(input, roll)
+            y_ = model(pan, ms, roll)
             b, c, h, w = y_.shape
             loss = loss_func(y_, gt)
             loss.backward()
@@ -204,11 +204,11 @@ if __name__ == '__main__':
             count = 0
             for iter_idx, batch in enumerate(valid_dataloader):
                 optimizer.zero_grad()
-                input, gt = utils.data_to_device(batch, device, args.fp)
+                ms, pan, gt = utils.data_to_device(batch, device, args.fp)
                 # input_norm, gt_norm = valid_norm.input_norm(input), valid_norm.gt_norm(gt)
 
                 roll = 0
-                y_ = model(input, roll)
+                y_ = model(pan, ms, roll)
                 b, c, h, w = y_.shape
 
                 # quantize output to [0, 255]

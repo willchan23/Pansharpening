@@ -1,5 +1,5 @@
 import torch.nn as nn
-from models.GeoAN.m_blockV2 import FEB, Tail, Head
+from models.GeoANv2.m_blockV2 import FEB, Tail, Head
 from einops import rearrange
 from datetime import datetime
 from torch.utils.data import DataLoader
