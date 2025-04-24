@@ -5,7 +5,7 @@ import numpy as np
 from rasterio.transform import from_origin
 
 
-def h52npy(h5_file_path, output_dir="/mnt/data1/czx/Pansharpening/GF2/Train"):
+def h52npy(h5_file_path, output_dir):
     """
         将 HDF5 文件中的所有数据集转换为单独的 .npy 文件
         参数：
@@ -92,10 +92,13 @@ def max_min_to_01(npy_path):
 
 if __name__ == '__main__':
     # h52npy(r"/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5")
+    # h52npy(r"E:\data\Pansharpening\training_gf2\valid_gf2.h5")
+    h52npy(r'/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5', '/mnt/data1/czx/Pansharpening/GF2v2/Train')
+    h52npy(r'/mnt/data1/czx/Pansharpening/GF2/valid_gf2.h5', '/mnt/data1/czx/Pansharpening/GF2v2/Valid')
     # npy = np.load(r"E:\pycode\Pansharpening\util\lms.npy")
     # t = np2tif()
     # npy2Tiff(r"E:\pycode\Pansharpening\util\gt.npy", 0)
-    npy_list = ['lms.npy', 'pan.npy', 'gt.npy']
+    npy_list = ['ms.npy', 'pan.npy', 'gt.npy']
     for npy in npy_list:
         max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2/Train/{npy}")
         max_min_to_01(rf"/mnt/data1/czx/Pansharpening/GF2/Valid/{npy}")
