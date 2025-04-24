@@ -1,5 +1,5 @@
 model: 'geoan'
-n_geoab: 12
+n_geoab: 8
 #c_geoan: 60
 c_geoan: 72
 c_in: 4
