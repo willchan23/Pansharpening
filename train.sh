@@ -1,2 +1,2 @@
 git pull
-python train.py --config ./configs/config.yml
+python trainv2.py --config ./configs/config.yml
