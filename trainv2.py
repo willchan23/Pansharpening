@@ -231,7 +231,7 @@ if __name__ == '__main__':
                 psnr_list.extend(batch_psnr)
                 ssim_list.extend(batch_ssim)
                 count += 1
-                progress_bar.update(len(input))
+                progress_bar.update(b)
             progress_bar.close()
             epoch_loss = epoch_loss / count
             psnr_total = np.array(psnr_list).mean()
