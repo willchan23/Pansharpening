@@ -21,12 +21,12 @@ from util.utils import EXCLUDE_DATE
 if __name__ == '__main__':
     device, args = utils.parse_config()
 
-    test_dataset = Benchmark(args.data_path, train=False)
+    test_dataset = Benchmark(args.test_data_path, train=False)
 
     test_dataloader = DataLoader(dataset=test_dataset, num_workers=args.threads, batch_size=4,
                                  shuffle=False, pin_memory=False, drop_last=False)
     model = utils.get_model(args)
-    norm = Normalization(args.data_path)
+    norm = Normalization(args.test_data_path)
     norm.input_mean, norm.input_std, norm.gt_mean, norm.gt_std = utils.data_to_device(
         [norm.input_mean, norm.input_std, norm.gt_mean, norm.gt_std],
         device, args.fp)
@@ -66,8 +66,7 @@ if __name__ == '__main__':
         for idx, each_y in enumerate(y_):
             data_idx = str(iter_idx * args.batch_size + idx)
             np.save(os.path.join(root_path, data_idx + f'-iters.npy'), each_y)
-        # np2tif(each_y, img_path, args.model + '-' + data_idx,
-        #        dim_value=[{'value': ['PRE', 'PRS', 'SHU', 'SSRA', 'TMP', 'WIN']}])
+        np2tif(each_y, img_path, args.model + '-' + data_idx)
         b, c, h, w = y_.shape
 
         progress_bar.update(len(input))
