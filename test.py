@@ -7,7 +7,7 @@ import os
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from dataset.datasetV2 import Benchmark
+from dataset.datasetV1 import Benchmark
 from datetime import datetime
 from jacksung.utils.time import RemainTime, Stopwatch, cur_timestamp_str
 from jacksung.utils.data_convert import np2tif
