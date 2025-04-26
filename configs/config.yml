@@ -1,8 +1,8 @@
 model: 'geoan'
-n_geoab: 10
+n_geoab: 9
 #c_geoan: 60
-c_geoan: 72
-c_in: 4
+c_geoan: 120
+c_in: 5
 # window_sizes: [ 2,4,13 ]
 window_sizes: [ 2, 4, 8 ]
 num_heads: 8
@@ -15,11 +15,11 @@ loss: 'nn.L1Loss()'
 optimizer: 'AdamW'
 pretrain:
 resume:
-batch_size: 36
+batch_size: 4
 balanced_gpu0: -1
 epochs: 300
 #lr: 0.0002
-lr: 0.0005
+lr: 0.0001
 decays: [ 50,80,90,95 ]
 gamma: 0.1
 test_every: 1
