@@ -30,8 +30,8 @@ cloudlog: off
 repeat: 1
 augment: 'off'
 # produce
-test_data_path: './proc/test_data/'
-model_path:
+#test_data_path: './proc/test_data/'
+model_path: '/home/czx/pycode/Pansharpening/Pansharpening/experiments/geoan-2025-0420-2310-2087_good/models/model_88.pt'
 # model_path: './experiments/testmodel/6h_523.pt'
 save_path: "./proc"
 
@@ -44,3 +44,4 @@ threads: 4
 # the path train and test dateset. You can download the dataset in this project
 train_data_path: '/mnt/data1/czx/Pansharpening/GF2v2/Train'
 valid_data_path: '/mnt/data1/czx/Pansharpening/GF2v2/Valid'
+test_data_path: '/mnt/data1/czx/Pansharpening/GF2/Test'
