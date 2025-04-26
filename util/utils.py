@@ -14,7 +14,7 @@ import jacksung.utils.fastnumpy as fnp
 from tqdm import tqdm
 from datetime import datetime, timedelta
 from matplotlib.ticker import MaxNLocator
-from models.GeoANv2.m_networkV2 import GeoAN
+from models.GeoAN.m_networkV2 import GeoAN
 # from models.unet.unet_model import UNet
 # from models.swinir.network_swinir import SwinIR
 from PIL import Image
