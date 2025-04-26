@@ -29,19 +29,19 @@ class GeoAN(nn.Module):
         for window_size in self.window_sizes:
             for i in range(number // 1):
                 self.body.append(
-                    FEB(self.c_geoan, self.r_expand, window_size, num_heads=num_heads, downscale=self.down_sample))
+                    FEB(self.c_geoan, self.r_expand, window_size, num_heads=num_heads))
 
         self.tail = Tail(self.c_geoan, self.c_in, self.down_sample)
 
     def forward(self, x, roll=0):
         # head
         if roll > 0:
-             x = torch.roll(x, shifts=roll, dims=-1)
+            x = torch.roll(x, shifts=roll, dims=-1)
         # f, x = rearrange(x, 'b c z h w->b (c z) h w'), rearrange(f, 'b c z h w->b (c z) h w')
         # # 双线性内插，插成lr一样的分辨率
         # f:topo, x:lr
         # x = self.input_down_Sequences(x)
-        x = self.head(x) #c:108
+        x = self.head(x)  # c:108
         shortcut = x
         # body
         for idx, stage in enumerate(self.body):
