@@ -37,8 +37,8 @@ save_path: "./proc"
 
 ## hardware specification
 # specify the GPUs you want to use. [0] means using the first GPU. [1,3] means using second and fourth GPU
-#gpu_ids: [ 0, 1 ,2, 3 ]
-gpu_ids: [ 0 ]
+gpu_ids: [ 0, 1 ,2, 3 ]
+#gpu_ids: [ 0 ]
 threads: 4
 ## data specification
 # the path train and test dateset. You can download the dataset in this project
