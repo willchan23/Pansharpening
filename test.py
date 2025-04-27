@@ -27,8 +27,8 @@ if __name__ == '__main__':
                                  shuffle=False, pin_memory=False, drop_last=False)
     model = utils.get_model(args)
     norm = Normalization(args.test_data_path)
-    norm.input_mean, norm.input_std, norm.gt_mean, norm.gt_std = utils.data_to_device(
-        [norm.input_mean, norm.input_std, norm.gt_mean, norm.gt_std],
+    norm.input_mean, norm.input_std, norm.gt_mean, norm.gt_std, norm.lms_mean, norm.lms_std = utils.data_to_device(
+        [norm.input_mean, norm.input_std, norm.gt_mean, norm.gt_std, norm.lms_mean, norm.lms_std],
         device, args.fp)
     # load pretrain
     if args.model_path is None:
