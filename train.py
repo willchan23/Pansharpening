@@ -12,7 +12,7 @@ import random
 import torch.nn as nn
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
-from dataset.datasetV2 import Benchmark
+from dataset.datasetV1 import Benchmark
 import numpy as np
 
 from metrics.latitude_weighted_loss import LatitudeLoss
@@ -147,10 +147,10 @@ if __name__ == '__main__':
     log.send_log('Start training', cloudLogName)
     log_every = max(len(train_dataloader) // args.log_lines, 1)
 
-    # train_norm = Normalization(args.train_data_path)
-    # train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std = utils.data_to_device(
-    #     [train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std], device, args.fp)
-    #
+    train_norm = Normalization(args.train_data_path)
+    train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std = utils.data_to_device(
+        [train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std], device, args.fp)
+
     # valid_norm = Normalization(args.valid_data_path)
     # valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std = utils.data_to_device(
     #     [valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std], device, args.fp)
@@ -168,7 +168,7 @@ if __name__ == '__main__':
         for iter_idx, batch in enumerate(train_dataloader):
             optimizer.zero_grad()
             input, gt = utils.data_to_device(batch, device, args.fp)
-            # input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
+            input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
 
             roll = 0
             y_ = model(input, roll)
@@ -205,7 +205,7 @@ if __name__ == '__main__':
             for iter_idx, batch in enumerate(valid_dataloader):
                 optimizer.zero_grad()
                 input, gt = utils.data_to_device(batch, device, args.fp)
-                # input_norm, gt_norm = valid_norm.input_norm(input), valid_norm.gt_norm(gt)
+                input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
 
                 roll = 0
                 y_ = model(input, roll)
@@ -214,7 +214,7 @@ if __name__ == '__main__':
                 # quantize output to [0, 255]
 
                 loss = loss_func(y_, gt)
-                # y_ = valid_norm.denorm(y_)
+                y_ = train_norm.denorm(y_)
                 y_ = y_.clamp(0, 1)
                 gt = gt.clamp(0, 1)
                 batch_psnr, batch_ssim, batch_qnr, batch_D_lambda, batch_D_s = [], [], [], [], []
