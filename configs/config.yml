@@ -1,5 +1,5 @@
 model: 'geoan'
-n_geoab: 12
+n_geoab: 9
 #c_geoan: 60
 c_geoan: 120
 c_in: 5
@@ -15,7 +15,7 @@ loss: 'nn.L1Loss()'
 optimizer: 'AdamW'
 pretrain:
 resume:
-batch_size: 64
+batch_size: 4
 balanced_gpu0: -1
 epochs: 300
 #lr: 0.0002
