@@ -37,7 +37,8 @@ class GeoAN(nn.Module):
         # f, x = rearrange(x, 'b c z h w->b (c z) h w'), rearrange(f, 'b c z h w->b (c z) h w')
         # # 双线性内插，插成lr一样的分辨率
         # f:topo, x:lr
-        x = nn.functional.interpolate(x, size=[64, 64], mode='bilinear')
+        # x = nn.functional.interpolate(x, size=[64, 64], mode='bilinear')
+        x = nn.functional.interpolate(x, scale_factor=4, mode='bilinear', align_corners=False)
         f, x = self.head_f(f), self.head(x)  # c:108
         shortcut = x
         # body
@@ -86,6 +87,6 @@ class GeoAN(nn.Module):
 
 
 if __name__ == '__main__':
-    input_tensor = torch.randn(1, 1, 16, 16)
-    out = nn.functional.interpolate(input_tensor, size=[64, 64], mode='bilinear')
+    x = torch.randn(24, 4, 16, 16)
+    x = nn.functional.interpolate(x, scale_factor=4, mode='bilinear', align_corners=False)
     pass

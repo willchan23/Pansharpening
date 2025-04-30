@@ -1,4 +1,5 @@
 model: 'geoan'
+task: 'gf2'
 n_geoab: 9
 #c_geoan: 60
 c_geoan: 120
@@ -42,6 +43,8 @@ gpu_ids: [ 0, 1 ,2, 3 ]
 threads: 4
 ## data specification
 # the path train and test dateset. You can download the dataset in this project
-train_data_path: '/mnt/data1/czx/Pansharpening/GF2v2/Train'
-valid_data_path: '/mnt/data1/czx/Pansharpening/GF2v2/Valid'
-test_data_path: '/mnt/data1/czx/Pansharpening/GF2/Test'
+#train_data_path: '/mnt/data1/czx/Pansharpening/GF2v2/Train'
+#valid_data_path: '/mnt/data1/czx/Pansharpening/GF2v2/Valid'
+#test_data_path: '/mnt/data1/czx/Pansharpening/GF2/Test'
+train_data_path: '/mnt/data1/czx/Pansharpening/GF2/train_gf2.h5'
+valid_data_path: '/mnt/data1/czx/Pansharpening/GF2/valid_gf2.h5'
