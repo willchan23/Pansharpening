@@ -12,7 +12,7 @@ import random
 import torch.nn as nn
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
-from dataset.datasetV2 import Benchmark
+from dataset.datasetV3 import Benchmark
 import numpy as np
 
 from metrics.latitude_weighted_loss import LatitudeLoss
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     scheduler = MultiStepLR(optimizer, milestones=args.decays, gamma=args.gamma)
     # resume training
     if args.resume is not None:
-        ckpt_files = os.path.join(args.resume, '../models', "model_latest.pt")
+        ckpt_files = os.path.join(args.resume, 'models', "model_latest.pt")
         if len(ckpt_files) != 0:
             ckpt = torch.load(ckpt_files)
             prev_epoch = ckpt['epoch']
@@ -74,10 +74,10 @@ if __name__ == '__main__':
             stat_dict = ckpt['stat_dict']
             # reset folder and param
             experiment_path = args.resume
-            experiment_model_path = os.path.join(experiment_path, '../models')
+            experiment_model_path = os.path.join(experiment_path, 'models')
             print('Select {} file, resume training from epoch {}.'.format(ckpt_files, start_epoch))
         else:
-            raise Exception(f'{os.path.join(args.resume, "../models", "model_latest.pt")}中无有效的ckpt_files')
+            raise Exception(f'{os.path.join(args.resume, "models", "model_latest.pt")}中无有效的ckpt_files')
     else:
         start_epoch = 1
         # auto-generate the output log name
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         # create folder for ckpt and stat
         if not os.path.exists(experiment_path):
             os.makedirs(experiment_path)
-        experiment_model_path = os.path.join(experiment_path, '../models')
+        experiment_model_path = os.path.join(experiment_path, 'models')
         if not os.path.exists(experiment_model_path):
             os.makedirs(experiment_model_path)
         # save training parameters
@@ -131,29 +131,28 @@ if __name__ == '__main__':
     # 首先计算 num_params / 1024 ** 2，即将参数数量转换为以兆（M）为单位的值，然后使用 round() 函数保留两位小数，并将结果转换为字符串
     print('Total Number of Parameters:' + str(round(num_params / 1024 ** 2, 2)) + 'M')
     print('loading train data: ')
-    train_dataset = Benchmark(args.train_data_path, train=True, repeat=args.repeat)
+
+    #################################loading data######################################
+    train_dataset = Benchmark(args.train_data_path)
+    valid_dataset = Benchmark(args.valid_data_path)
+    print("finished loading")
     print('loading valid data: ')
-    valid_dataset = Benchmark(args.valid_data_path, train=False, repeat=args.repeat)
     train_dataloader = DataLoader(dataset=train_dataset, num_workers=args.threads, batch_size=args.batch_size,
                                   shuffle=True, pin_memory=False, drop_last=True)
     valid_dataloader = DataLoader(dataset=valid_dataset, num_workers=args.threads, batch_size=args.batch_size,
                                   shuffle=False, pin_memory=False, drop_last=False)
-    # start training
-    # 计时器（Stopwatch），用于测量代码执行的时间
+
+    if args.task == "wv3":
+        pan_channels, lms_channels = 1, 8
+    elif args.task in ["qb", "gf2"]:
+        pan_channels, lms_channels = 1, 4
+
     sw = Stopwatch()
     rt = RemainTime(args.epochs)
     cloudLogName = experiment_path.split(os.sep)[-1]
     log = LogClass(args.cloudlog == 'on')
     log.send_log('Start training', cloudLogName)
     log_every = max(len(train_dataloader) // args.log_lines, 1)
-
-    # train_norm = Normalization(args.train_data_path)
-    # train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std = utils.data_to_device(
-    #     [train_norm.input_mean, train_norm.input_std, train_norm.gt_mean, train_norm.gt_std], device, args.fp)
-    #
-    # valid_norm = Normalization(args.valid_data_path)
-    # valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std = utils.data_to_device(
-    #     [valid_norm.input_mean, valid_norm.input_std, valid_norm.gt_mean, valid_norm.gt_std], device, args.fp)
 
     for epoch in range(start_epoch, args.epochs + 1):
         epoch_loss = 0.0
@@ -167,11 +166,11 @@ if __name__ == '__main__':
         # training the model
         for iter_idx, batch in enumerate(train_dataloader):
             optimizer.zero_grad()
-            ms, pan, gt = utils.data_to_device(batch, device, args.fp)
+            gt, lms, _, _, pan = utils.data_to_device(batch, device, args.fp)
             # input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
 
             roll = 0
-            y_ = model(pan, ms, roll)
+            y_ = model(pan, lms, roll)
             b, c, h, w = y_.shape
             loss = loss_func(y_, gt)
             loss.backward()
@@ -204,16 +203,38 @@ if __name__ == '__main__':
             count = 0
             for iter_idx, batch in enumerate(valid_dataloader):
                 optimizer.zero_grad()
-                ms, pan, gt = utils.data_to_device(batch, device, args.fp)
+                gt, lms, _, _, pan = utils.data_to_device(batch, device, args.fp)
                 # input_norm, gt_norm = valid_norm.input_norm(input), valid_norm.gt_norm(gt)
 
                 roll = 0
-                y_ = model(pan, ms, roll)
+                y_ = model(pan, lms, roll)
                 b, c, h, w = y_.shape
 
                 # quantize output to [0, 255]
 
                 loss = loss_func(y_, gt)
+                gt = gt * 2047
+                y_ = y_ * 2047
+
+
+                # gt、y_ 最大最小值缩放到0 1之间
+                # tensor (c, h, w)
+                def zero2one(tensor):
+                    # 对每个通道分别进行 0-1 归一化
+                    c, h, w = tensor.shape
+                    for i in range(c):
+                        channel = tensor[i]
+                        min_val = torch.min(channel)
+                        max_val = torch.max(channel)
+                        if max_val != min_val:
+                            tensor[i] = (channel - min_val) / (max_val - min_val)
+                        else:
+                            tensor[i] = torch.zeros_like(channel)
+                    return tensor
+
+
+                y_ = zero2one(y_)
+                gt = zero2one(gt)
                 # y_ = valid_norm.denorm(y_)
                 y_ = y_.clamp(0, 1)
                 gt = gt.clamp(0, 1)

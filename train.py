@@ -63,7 +63,7 @@ if __name__ == '__main__':
     scheduler = MultiStepLR(optimizer, milestones=args.decays, gamma=args.gamma)
     # resume training
     if args.resume is not None:
-        ckpt_files = os.path.join(args.resume, '../models', "model_latest.pt")
+        ckpt_files = os.path.join(args.resume, 'models', "model_latest.pt")
         if len(ckpt_files) != 0:
             ckpt = torch.load(ckpt_files)
             prev_epoch = ckpt['epoch']
@@ -74,10 +74,10 @@ if __name__ == '__main__':
             stat_dict = ckpt['stat_dict']
             # reset folder and param
             experiment_path = args.resume
-            experiment_model_path = os.path.join(experiment_path, '../models')
+            experiment_model_path = os.path.join(experiment_path, 'models')
             print('Select {} file, resume training from epoch {}.'.format(ckpt_files, start_epoch))
         else:
-            raise Exception(f'{os.path.join(args.resume, "../models", "model_latest.pt")}中无有效的ckpt_files')
+            raise Exception(f'{os.path.join(args.resume, "models", "model_latest.pt")}中无有效的ckpt_files')
     else:
         start_epoch = 1
         # auto-generate the output log name
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         # create folder for ckpt and stat
         if not os.path.exists(experiment_path):
             os.makedirs(experiment_path)
-        experiment_model_path = os.path.join(experiment_path, '../models')
+        experiment_model_path = os.path.join(experiment_path, 'models')
         if not os.path.exists(experiment_model_path):
             os.makedirs(experiment_model_path)
         # save training parameters
