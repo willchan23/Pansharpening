@@ -168,7 +168,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             gt, lms, _, _, pan = utils.data_to_device(batch, device, args.fp)
             # input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
-            print("batch shape", batch.shape)
+            print("batch shape", len(batch))
             print("gt shape", gt.shape)
             roll = 0
             y_ = model(pan, lms, roll)
