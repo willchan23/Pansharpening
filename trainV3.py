@@ -224,18 +224,18 @@ if __name__ == '__main__':
 
 
                 # gt、y_ 最大最小值缩放到0 1之间
-                # tensor (c, h, w)
                 def zero2one(tensor):
                     # 对每个通道分别进行 0-1 归一化
-                    c, h, w = tensor.shape
-                    for i in range(c):
-                        channel = tensor[i]
-                        min_val = torch.min(channel)
-                        max_val = torch.max(channel)
-                        if max_val != min_val:
-                            tensor[i] = (channel - min_val) / (max_val - min_val)
-                        else:
-                            tensor[i] = torch.zeros_like(channel)
+                    b, c, h, w = tensor.shape
+                    for batch in range(b):
+                        for i in range(c):
+                            channel = tensor[batch, i]
+                            min_val = torch.min(channel)
+                            max_val = torch.max(channel)
+                            if max_val != min_val:
+                                tensor[batch, i] = (channel - min_val) / (max_val - min_val)
+                            else:
+                                tensor[batch, i] = torch.zeros_like(channel)
                     return tensor
 
 
