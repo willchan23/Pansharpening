@@ -2,7 +2,7 @@ model: 'geoan'
 task: 'gf2'
 n_geoab: 5
 #c_geoan: 60
-c_geoan: 60
+c_geoan: 48
 c_in: 4
 # window_sizes: [ 2,4,13 ]
 window_sizes: [ 2, 4, 8 ]
