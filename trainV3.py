@@ -170,6 +170,7 @@ if __name__ == '__main__':
             # input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
             print("batch shape", len(batch[0]))
             print("gt shape", gt.shape)
+            print("lms shape", lms.shape)
             roll = 0
             y_ = model(pan, lms, roll)
             b, c, h, w = y_.shape
