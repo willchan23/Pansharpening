@@ -16,7 +16,7 @@ loss: 'nn.L1Loss()'
 optimizer: 'AdamW'
 pretrain:
 resume:
-batch_size: 64
+batch_size: 32
 balanced_gpu0: -1
 epochs: 300
 #lr: 0.0002
