@@ -304,6 +304,8 @@ class GeoAB(nn.Module):
             kv=2, dh=wsize, dw=wsize, head=self.num_heads
         )
         # @等同于torch.matmul，转置后就变成了((b h0 w0), 8, 25, 9)@((b h0 w0), 8, 9, 25)->((b h0 w0), 8, 25, 25)
+        print("k shape", k.shape)
+        print("v shape", v.shape)
         atn = (F.normalize(q, dim=-1) @ F.normalize(k, dim=-1).transpose(-2, -1))
 
         t = torch.tensor(1. / 0.01).to('cuda')
