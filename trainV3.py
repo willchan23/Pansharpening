@@ -209,11 +209,11 @@ if __name__ == '__main__':
             count = 0
             for iter_idx, batch in enumerate(valid_dataloader):
                 optimizer.zero_grad()
-                gt, lms, _, _, pan = utils.data_to_device(batch, device, args.fp)
+                gt, lms, ms, pan_hp, pan = utils.data_to_device(batch, device, args.fp)
                 # input_norm, gt_norm = valid_norm.input_norm(input), valid_norm.gt_norm(gt)
 
                 roll = 0
-                y_ = model(pan, lms, roll)
+                y_ = model(pan, ms, roll)
                 b, c, h, w = y_.shape
 
                 # quantize output to [0, 255]
