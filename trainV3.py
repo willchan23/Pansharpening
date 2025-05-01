@@ -166,17 +166,17 @@ if __name__ == '__main__':
         # training the model
         for iter_idx, batch in enumerate(train_dataloader):
             optimizer.zero_grad()
-            gt, lms, ms_hp, pan_hp, pan = utils.data_to_device(batch, device, args.fp)
+            gt, lms, ms, pan_hp, pan = utils.data_to_device(batch, device, args.fp)
             # input_norm, gt_norm = train_norm.input_norm(input), train_norm.gt_norm(gt)
-            print("batch shape", len(batch[0]))
-            print("gt shape", gt.shape)
-            print("lms shape", lms.shape)
-            print("pan shape", pan.shape)
-            print("ms shape", ms_hp.shape)
-            print("pan_hp", pan_hp.shape)
+            # print("batch shape", len(batch[0]))
+            # print("gt shape", gt.shape)
+            # print("lms shape", lms.shape)
+            # print("pan shape", pan.shape)
+            # print("ms shape", ms.shape)
+            # print("pan_hp", pan_hp.shape)
             # print("input shape", input.shape)
             roll = 0
-            y_ = model(pan, lms, roll)
+            y_ = model(pan, ms, roll)
             b, c, h, w = y_.shape
             loss = loss_func(y_, gt)
             loss.backward()
