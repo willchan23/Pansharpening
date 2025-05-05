@@ -3,7 +3,7 @@ import math
 
 import yaml
 
-from metrics.metrics2 import cpsnr, cssim, scale_to_255
+from metrics.metrics2 import cpsnr, cssim, scale_to_255, no_ref_evaluate
 from util import utils
 import os
 import sys
@@ -176,7 +176,7 @@ if __name__ == '__main__':
             # print("pan_hp", pan_hp.shape)
             # print("input shape", input.shape)
             roll = 0
-            y_ = model(pan, ms, roll)
+            y_ = model(pan, lms, roll)
             b, c, h, w = y_.shape
             loss = loss_func(y_, gt)
             loss.backward()
@@ -213,7 +213,7 @@ if __name__ == '__main__':
                 # input_norm, gt_norm = valid_norm.input_norm(input), valid_norm.gt_norm(gt)
 
                 roll = 0
-                y_ = model(pan, ms, roll)
+                y_ = model(pan, lms, roll)
                 b, c, h, w = y_.shape
 
                 # quantize output to [0, 255]
@@ -221,6 +221,9 @@ if __name__ == '__main__':
                 loss = loss_func(y_, gt)
                 gt = gt * 2047
                 y_ = y_ * 2047
+                ms = ms * 2047
+                lms = lms * 2047
+                pan = pan * 2047
 
 
                 # gt、y_ 最大最小值缩放到0 1之间
@@ -241,16 +244,32 @@ if __name__ == '__main__':
 
                 y_ = zero2one(y_)
                 gt = zero2one(gt)
+                ms = zero2one(ms)
+                lms = zero2one(lms)
+                pan = zero2one(pan)
                 # y_ = valid_norm.denorm(y_)
                 y_ = y_.clamp(0, 1)
                 gt = gt.clamp(0, 1)
+                ms = ms.clamp(0, 1)
+                lms = lms.clamp(0, 1)
+                pan = pan.clamp(0, 1)
+
                 batch_psnr, batch_ssim, batch_qnr, batch_D_lambda, batch_D_s = [], [], [], [], []
                 for batch_index in range(b):
                     # 计算PSNR和SSIM
-                    predict_y = (y_[batch_index, ...].cpu().numpy().transpose((1, 2, 0))) * 255
-                    ground_truth = (gt[batch_index, ...].cpu().numpy().transpose((1, 2, 0))) * 255
-                    psnr = cpsnr(predict_y, ground_truth)
-                    ssim = cssim(predict_y, ground_truth, 255)
+                    y_channel = (y_[batch_index, ...].cpu().numpy().transpose((1, 2, 0))) * 255
+                    gt_channel = (gt[batch_index, ...].cpu().numpy().transpose((1, 2, 0))) * 255
+                    pan_channel = (pan[batch_index, ...].cpu().numpy().transpose((1, 2, 0))) * 255
+                    ms_channel = (ms[batch_index, ...].cpu().numpy().transpose((1, 2, 0))) * 255
+                    lms_channel = (lms[batch_index, ...].cpu().numpy().transpose((1, 2, 0))) * 255
+
+                    psnr = cpsnr(y_channel, gt_channel)
+                    ssim = cssim(y_channel, gt_channel, 255)
+
+                    ms_channel = np.uint8(ms_channel)
+                    pan_channel = np.uint8(pan_channel)
+                    c_D_lambda, c_D_s, QNR = no_ref_evaluate(y_channel, pan_channel, lms_channel)
+
                     batch_psnr.append(psnr)
                     batch_ssim.append(ssim)
 

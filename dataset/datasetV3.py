@@ -5,6 +5,7 @@ import cv2
 import h5py
 
 
+## 摘录自ARCovn 电子科大
 def get_edge(data):  # for training
     rs = np.zeros_like(data)
     N = data.shape[0]
@@ -54,6 +55,16 @@ class Benchmark(data.Dataset):
             self.ms_hp[index, :, :, :].float(), \
             self.pan_hp[index, :, :, :].float(), \
             self.pan[index, :, :, :].float()  # Nx1xHxW:
+    # ms: 4 16 16
+    # lms: 4 64 64
+    # pan: 1 64 64
+    # gt: 4 64 64
 
     def __len__(self):
         return self.gt.shape[0]
+
+
+if __name__ == '__main__':
+    data = h5py.File(r"E:\data\Pansharpening\training_gf2\valid_gf2.h5")  # NxCxHxW = 0x1x2x3
+    gt1 = data["ms"][...]
+    pass

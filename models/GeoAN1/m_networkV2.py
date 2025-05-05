@@ -1,5 +1,5 @@
 import torch.nn as nn
-from models.GeoAN.m_blockV2 import FEB, Tail, Head
+from models.GeoAN1.m_blockV2 import FEB, Tail, Head
 from einops import rearrange
 from datetime import datetime
 from torch.utils.data import DataLoader
@@ -33,10 +33,12 @@ class GeoAN(nn.Module):
 
         self.tail = Tail(self.c_geoan, self.c_in, self.down_sample)
 
-    def forward(self, x, roll=0):
+    def forward(self, pan, x, roll=0):
         # head
         if roll > 0:
             x = torch.roll(x, shifts=roll, dims=-1)
+        # x = nn.functional.interpolate(x, scale_factor=4, mode='bilinear', align_corners=False)
+        x = torch.cat((x, pan), dim=0)
         # f, x = rearrange(x, 'b c z h w->b (c z) h w'), rearrange(f, 'b c z h w->b (c z) h w')
         # # 双线性内插，插成lr一样的分辨率
         # f:topo, x:lr
